@@ -7,16 +7,22 @@ from torchvision.transforms.functional import to_tensor, to_pil_image
 
 from Criteria import psnr_
 
+
 def main():
     # resize()
-    # compare()
-    denoise_128()
+    # denoise_128()
+    denoise_final_result()
+
 
 def resize():
+    '''
+    使用插值法放大图片, 对比试验
+    :return:
+    '''
     img = cv2.imread('data/cut_512_test/099.png')
     # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     # plt.show()
-    dst = cv2.resize(img, (img.shape[1]*4, img.shape[0]*4))
+    dst = cv2.resize(img, (img.shape[1] * 4, img.shape[0] * 4))
     #
     # dst = cv2.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
 
@@ -27,29 +33,16 @@ def resize():
     # cv2.imwrite('lr.png', img)
     cv2.imwrite('dst99.png', dst)
 
-def compare():
-    itp = Image.open('dst.png')
-    itp_arr = to_tensor(itp)
-    out = Image.open('data/cut_128_results/097_4x.png')
-    out_arr = to_tensor(out)
-    target = Image.open('data/cut_512_test/097.png')
-    target_arr = to_tensor(target)
-
-    psnr_itp = psnr_(itp_arr, target_arr)
-    psnr_net = psnr_(out_arr, target_arr)
-    print(psnr_itp, psnr_net)
 
 def denoise():
-
+    '''
+    对指定的图片进行去噪处理
+    '''
     img = cv2.imread('data/cut_512_results/099_4x.png')
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     dst = cv2.fastNlMeansDenoisingColored(img, None, 3, 3, 7, 21)
     src = cv2.imread('data/cut_512_test/099.png')
     src = cv2.cvtColor(src, cv2.COLOR_BGR2RGB)
-
-    # img2 = cv2.imread('data/cut_128_results/097_4x.png')
-    # img2 = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    # dst2 = cv2.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 10)
 
     plt.subplot(121), plt.imshow(src)
     plt.subplot(122), plt.imshow(dst)
@@ -57,7 +50,21 @@ def denoise():
     # plt.subplot(133), plt.imshow(dst2)
     plt.show()
 
+
+def denoise_final_result():
+    '''
+    对results/下099_4x.png图片进行去噪处理
+    :return:
+    '''
+    img = cv2.imread('results/099_4x.png')
+    dst = cv2.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
+    cv2.imwrite('results/099_4x_denoise.png', dst)
+
+
 def denoise_128():
+    '''
+    将网络对测试集128x128输出的图片进行进一步去噪处理, 得到最终结果
+    '''
     folder_in = 'data/cut_128_results/'
     folder_out = 'data/cut_128_denoise/'
     import os

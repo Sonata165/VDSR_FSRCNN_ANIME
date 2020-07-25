@@ -167,12 +167,18 @@ from torch import nn
 
 
 def psnr(predict, target):
+    '''
+    对图片计算PSNR, 要求图片像素值在0-255之间
+    '''
     with torch.no_grad():
         criteria = nn.MSELoss()
         mse = criteria(predict, target)
         return 10 * torch.log10(255 ** 2 / mse)
 
 def psnr_(predict, target):
+    '''
+    对图片计算PSNR, 要求图片像素值在0-1之间
+    '''
     with torch.no_grad():
         criteria = nn.MSELoss()
         mse = criteria(predict, target)

@@ -12,7 +12,7 @@ from torchvision.transforms.functional import to_tensor, to_pil_image
 
 from Constants import *
 from Utils import *
-from CutImg import img2arr
+from DataPrepare import img2arr
 from Train import print_patch
 
 from Criteria import psnr_, msssim
@@ -23,6 +23,9 @@ def main():
 
 
 def evaluate():
+    '''
+    评估系统最终输出比起原图片的提升效果
+    '''
     folder_net = 'data/cut_128_results/'
     folder_den = 'data/cut_128_denoise/'
     folder_hr = 'data/cut_512_test/'
@@ -65,9 +68,10 @@ def evaluate():
 
 
 def test_model():
+    '''
+    将测试集图片放入网络, 得到最终输出.
+    '''
     model = torch.load('models/m4_1000epoch.pth').to(device)
-    # model = torch.load('models/FirstFSRCNN_m8.pth').to(device)
-    # model = torch.load('models/FirstModel.pth').to(device)
 
     input_dir = 'data/cut_128_test/'
     output_dir = 'data/cut_128_results/'

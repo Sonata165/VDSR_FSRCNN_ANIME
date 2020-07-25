@@ -7,9 +7,8 @@ from torch.utils.tensorboard import SummaryWriter
 from torchvision.transforms.functional import to_pil_image, to_tensor
 
 from Criteria import msssim, psnr
-from CutImg import *
+from DataPrepare import *
 from Models import *
-from DCSCN import *
 from Constants import *
 from Utils import *
 
@@ -19,6 +18,11 @@ def main():
 
 
 def train(model_name, ctn=False):
+    '''
+    训练网络
+    :param model_name: str, 要训练的网络名称
+    :param ctn: bool, 是否继续训练
+    '''
     # 建立Tensorboard，清理日志log
     log_tmp_dir = 'log/log_temp/'
     writer = SummaryWriter(log_tmp_dir)
@@ -40,10 +44,6 @@ def train(model_name, ctn=False):
     )
 
     # 定义模型
-    # model = CARN_V2(color_channels=3, mid_channels=64, conv=nn.Conv2d,
-    #                 single_conv_size=3, single_conv_group=1,
-    #                 scale=4, activation=nn.LeakyReLU(0.1),
-    #                 SEBlock=True, repeat_blocks=3, atrous=(1, 1, 1)).to(device)
     if ctn == False:
         model = FSRCNN(scale_factor=4, num_channels=3, d=56, s=12, m=4).to(device)
     else:
@@ -53,7 +53,6 @@ def train(model_name, ctn=False):
     loss_func = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
     # optimizer = torch.optim.Adam(model.last_part.parameters(), lr=1e-4)
-    # optimizer = torch.optim.SGD(model.)
     early_stopping = EarlyStopping(PATIENCE, verbose=True, delta=DELTA)
 
     summary(model, (3, 10, 10))
@@ -83,7 +82,8 @@ def train(model_name, ctn=False):
             loss.backward()
             optimizer.step()
 
-            print("Epoch: {} | Step {} / {} | Training Loss {:.4f}".format(epoch+1, step+1, total_steps, loss.item()))
+            print(
+                "Epoch: {} | Step {} / {} | Training Loss {:.4f}".format(epoch + 1, step + 1, total_steps, loss.item()))
 
         avg_train_loss = running_loss / total_steps
 
@@ -107,7 +107,7 @@ def train(model_name, ctn=False):
             avg_valid_psnr = running_psnr / len(loader_valid)
 
         print('Epoch: {} | Training Loss {:.4f} | Validating Loss {:.4f}'.format(
-            epoch+1, avg_train_loss, avg_valid_loss,
+            epoch + 1, avg_train_loss, avg_valid_loss,
         ))
 
         # Tensorboard可视化
@@ -122,16 +122,22 @@ def train(model_name, ctn=False):
             print("Early Stopping!")
             break
 
-    # 整理模型和日志
+    # 整理模型
     shutil.move('checkpoint.pth', 'models/' + model_name + '.pth')
 
+
 def print_patch(arr, name):
+    '''
+    用来将某一次训练或测试中网络输出的一个patch可视化, 保存在figure/目录下
+    :param arr: Tensor, 网络的直接输出, 要求shape有三个维度
+    :param name: str, 要保存成的文件名
+    '''
     arr = arr.data.cpu().numpy()
     arr = arr.transpose(1, 2, 0)
     arr = arr.astype(np.uint)
     plt.imshow(arr)
-    # plt.show()
     plt.savefig('figure/' + name + '.png')
+
 
 if __name__ == '__main__':
     main()
